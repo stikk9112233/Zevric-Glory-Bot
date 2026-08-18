@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 from typing import Set
 from dotenv import load_dotenv
+import threading
 
 from telegram import Update
 from telegram.ext import (
@@ -32,7 +33,7 @@ def is_admin(user_id: int) -> bool:
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Bot connected. Use /help to see commands.")
+    await update.message.reply_text("Bot connected. Use /help to see commands. Support: @just_zevric")
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -41,6 +42,8 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/help - This message\n"
         "/run <id> <password> - Start FF_CLIENT for given id and password (admin only)\n"
         "/glori <uid> - Trigger in-repo /glori behavior if implemented\n"
+        "Support: @just_zevric\n"
+        "YouTube: https://youtube.com/@zevricxplay?si=YoV2zn0G6XzI_oKV"
     )
     await update.message.reply_text(text)
 
@@ -48,7 +51,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def run_client_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user is None or user.id not in ADMIN_IDS:
-        await update.message.reply_text("Only admin can run this command.")
+        await update.message.reply_text("Only admin can run this command. Contact @just_zevric for help.")
         return
 
     if len(context.args) < 2:
@@ -78,7 +81,7 @@ async def glori_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Proxy command to in-repo functionality if exists
     user = update.effective_user
     if user is None or user.id not in ADMIN_IDS:
-        await update.message.reply_text("Only admin can run this command.")
+        await update.message.reply_text("Only admin can run this command. Contact @just_zevric for help.")
         return
 
     if len(context.args) < 1:
@@ -99,7 +102,7 @@ async def glori_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Unknown command. Use /help.")
+    await update.message.reply_text("Unknown command. Use /help or contact @just_zevric for support.")
 
 
 def main():

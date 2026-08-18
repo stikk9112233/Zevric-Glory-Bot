@@ -2,7 +2,6 @@ import os
 import logging
 from pathlib import Path
 from typing import Set
-from dotenv import load_dotenv
 
 from telegram import Update
 from telegram.ext import (
@@ -12,9 +11,6 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
-
-# Load .env if present
-load_dotenv()
 
 # Config
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -63,7 +59,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.effective_chat.id
     add_subscriber(chat_id)
     await update.message.reply_text(
-        f"Salam {user.first_name or 'friend'}!\nMain ready hoon. /help likho commands ke liye."
+        f"Salam {user.first_name or 'friend'}!\nMain ready hoon. /help likho commands ke liye.\nSupport: @just_zevric\nYouTube: https://youtube.com/@zevricxplay?si=YoV2zn0G6XzI_oKV"
     )
 
 
@@ -73,7 +69,9 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/help - Show this message\n"
         "/status - Bot status\n"
         "/broadcast <message> - (admin only) send message to all registered users\n"
-        "Any text message will be echoed back."
+        "Any text message will be echoed back.\n"
+        "Support: @just_zevric\n"
+        "YouTube: https://youtube.com/@zevricxplay?si=YoV2zn0G6XzI_oKV"
     )
     await update.message.reply_text(text)
 
@@ -86,7 +84,7 @@ async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     if user is None or user.id not in ADMIN_IDS:
-        await update.message.reply_text("Yeh command sirf admin ke liye hai.")
+        await update.message.reply_text("Yeh command sirf admin ke liye hai. Contact @just_zevric for support.")
         return
 
     if not context.args:
@@ -119,7 +117,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     if TOKEN is None:
-        logger.error("TELEGRAM_TOKEN not set. Set environment variable TELEGRAM_TOKEN or create a .env file.")
+        logger.error("TELEGRAM_TOKEN not set. Set environment variable TELEGRAM_TOKEN.")
         return
 
     ensure_data_dir()

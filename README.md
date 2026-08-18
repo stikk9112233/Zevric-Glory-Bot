@@ -11,6 +11,10 @@ ENVIRONMENT
   TELEGRAM_TOKEN=your_real_token
   ADMIN_IDS=8981733976
 
+Support & Channels
+- Support Telegram: @just_zevric
+- YouTube: https://youtube.com/@zevricxplay?si=YoV2zn0G6XzI_oKV
+
 Running 24/7 (recommended options)
 1) VPS / Server with Docker (recommended):
    - Build locally or on server:
@@ -28,7 +32,7 @@ Running 24/7 (recommended options)
    - Use the Dockerfile and set environment variables in the platform's secret/config UI.
 
 Automatic deployment via GitHub Actions
-- I can add a workflow to build and push a Docker image to a registry or deploy to a platform, but you must add the registry / platform secrets (DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, HEROKU_API_KEY, etc.) in GitHub repository Secrets. I cannot add secrets for you.
+- I can add a workflow to build and push a Docker image to a registry or deploy to a platform, but you must add the registry / platform secrets (DOCKERHUB_USERNAME, DOCKERHUB_TOKEN, HEROKU_API_KEY[...]
 
 What I changed
 - bot/main.py now loads environment variables from `.env` using python-dotenv.
@@ -39,4 +43,4 @@ Next steps I can take for you (pick one)
 - B) Create a workflow that deploys to Heroku (you must add HEROKU_API_KEY to secrets).
 - C) Set up a systemd unit file and instructions to run the Docker container on a VPS (I can provide the file and commands).
 
-Tell me which of A/B/C you want and I will create the workflow/files on branch `feature/port-glory-main` and open a PR. If you want me to use the token you posted, I will NOT commit it; instead tell me where you will store it (Heroku config / VPS env / GitHub secret) and I'll wire the deployment to read it from secrets.
+Tell me which of A/B/C you want and I will create the workflow/files on branch `feature/port-glory-main` and open a PR. If you want me to use the token you posted, I will NOT commit it; instead te[...]
