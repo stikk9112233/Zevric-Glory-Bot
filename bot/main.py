@@ -2,6 +2,7 @@ import os
 import logging
 from pathlib import Path
 from typing import Set
+from dotenv import load_dotenv
 
 from telegram import Update
 from telegram.ext import (
@@ -11,6 +12,9 @@ from telegram.ext import (
     ContextTypes,
     filters,
 )
+
+# Load .env if present
+load_dotenv()
 
 # Config
 TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -115,7 +119,7 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     if TOKEN is None:
-        logger.error("TELEGRAM_TOKEN not set. Set environment variable TELEGRAM_TOKEN.")
+        logger.error("TELEGRAM_TOKEN not set. Set environment variable TELEGRAM_TOKEN or create a .env file.")
         return
 
     ensure_data_dir()
