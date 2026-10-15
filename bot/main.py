@@ -170,8 +170,34 @@ async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Enhanced echo: also handle big menu text buttons like 'UPI' or 'USDT'
     if update.message and update.message.text:
-        await update.message.reply_text(update.message.text)
+        raw = update.message.text.strip()
+        lower = raw.lower()
+
+        # Check common variants that main menu might send
+        if "upi" in lower or "💜" in raw or "upi payment" in lower or "zervicxplay" in lower:
+            # Send UPI QR
+            upi_link = f"upi://pay?pa={UPI_ID}&pn=Zevric%20Glory%20Bot&tn=Credit%20Purchase&cu=INR"
+            qr_image = make_qr_image(upi_link)
+            await update.message.reply_photo(photo=qr_image, caption="Scan this QR to pay with UPI\nUPI ID: " + UPI_ID)
+            return
+
+        if "usdt" in lower or "💛" in raw or "tron" in lower:
+            # Send USDT QR (address-only)
+            qr_image = make_qr_image(USDT_ADDRESS.strip())
+            await update.message.reply_photo(
+                photo=qr_image,
+                caption=(
+                    "Scan this QR to pay with USDT\n"
+                    "Network: TRON (TRC20)\n"
+                    f"Address: {USDT_ADDRESS}"
+                ),
+            )
+            return
+
+        # Default: echo the text
+        await update.message.reply_text(raw)
 
 
 def main():
@@ -191,7 +217,7 @@ def main():
     app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CallbackQueryHandler(handle_payment_choice, pattern=r"pay_(upi|usdt)"))
 
-    # Echo non-command text
+    # Echo non-command text (enhanced to handle menu buttons)
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     logger.info("Starting bot (polling)...")
