@@ -1,12 +1,15 @@
+import io
 import os
 import logging
 from pathlib import Path
 from typing import Set
 
-from telegram import Update
+import qrcode
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
+    CallbackQueryHandler,
     MessageHandler,
     ContextTypes,
     filters,
@@ -17,6 +20,8 @@ TOKEN = os.getenv("TELEGRAM_TOKEN")
 ADMIN_IDS = {int(x) for x in os.getenv("ADMIN_IDS", "").split(",") if x}
 DATA_DIR = Path("data")
 SUBSCRIBERS_FILE = DATA_DIR / "subscribers.txt"
+UPI_ID = os.getenv("UPI_ID", "zervicxplay@okhdfcbank")
+USDT_ADDRESS = os.getenv("USDT_ADDRESS", "TLwAWcJ7Tm34jqyYqV6qhizQHy8pe7US1v")
 
 # Logging
 logging.basicConfig(
@@ -54,6 +59,17 @@ def remove_subscriber(chat_id: int):
         SUBSCRIBERS_FILE.write_text("\n".join(str(x) for x in sorted(subs)))
 
 
+def make_qr_image(data: str) -> io.BytesIO:
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
+    qr.add_data(data)
+    qr.make(fit=True)
+    image = qr.make_image(fill_color="black", back_color="white")
+    bio = io.BytesIO()
+    image.save(bio, format="PNG")
+    bio.seek(0)
+    return bio
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     chat_id = update.effective_chat.id
@@ -69,6 +85,7 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/help - Show this message\n"
         "/status - Bot status\n"
         "/broadcast <message> - (admin only) send message to all registered users\n"
+        "/addbalance - Generate UPI/USDT QR\n"
         "Any text message will be echoed back."
     )
     await update.message.reply_text(text)
@@ -77,6 +94,50 @@ async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     subs = len(read_subscribers())
     await update.message.reply_text(f"Bot is running ✅\nSubscribers: {subs}")
+
+
+async def add_balance(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [
+            InlineKeyboardButton("💜 UPI", callback_data="pay_upi"),
+            InlineKeyboardButton("💛 USDT", callback_data="pay_usdt"),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Choose payment method:", reply_markup=reply_markup)
+
+
+async def handle_payment_choice(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    if query is None:
+        return
+
+    await query.answer()
+    data = query.data or ""
+
+    if data == "pay_upi":
+        upi_link = (
+            f"upi://pay?pa={UPI_ID}&pn=Zevric%20Glory%20Bot&tn=Credit%20Purchase&cu=INR"
+        )
+        qr_image = make_qr_image(upi_link)
+        await query.message.reply_photo(
+            photo=qr_image,
+            caption="Scan this QR to pay with UPI\nUPI ID: " + UPI_ID,
+        )
+        return
+
+    if data == "pay_usdt":
+        usdt_link = USDT_ADDRESS.strip()
+        qr_image = make_qr_image(usdt_link)
+        await query.message.reply_photo(
+            photo=qr_image,
+            caption=(
+                "Scan this QR to pay with USDT\n"
+                "Network: TRON (TRC20)\n"
+                f"Address: {USDT_ADDRESS}"
+            ),
+        )
+        return
 
 
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -126,7 +187,9 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("status", status))
+    app.add_handler(CommandHandler("addbalance", add_balance))
     app.add_handler(CommandHandler("broadcast", broadcast))
+    app.add_handler(CallbackQueryHandler(handle_payment_choice, pattern=r"pay_(upi|usdt)"))
 
     # Echo non-command text
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
